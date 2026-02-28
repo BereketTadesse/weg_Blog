@@ -12,9 +12,11 @@ const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
+
+const allowedOrigins = ["http://localhost:8080","http://127.0.0.1:8080"];
 app.use(cors({
     credentials: true,
-    origin: "http://localhost:3000"
+    origin: allowedOrigins
 }));
 app.use("/api/users", userRoutes);
 
