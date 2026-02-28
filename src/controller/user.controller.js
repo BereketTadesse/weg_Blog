@@ -191,6 +191,54 @@ const resetPassword = async(req,res)=>{
     }
 };
 
+const updateProfile = async (req, res) => {
+    try {
+        // 1. Get user ID from the verifyToken middleware
+        const userId = req.user.id; 
+
+        // 2. Get text fields from req.body
+        const { fullName, bio, birthDate, location, aboutMe } = req.body;
+
+        // 3. Check if a file was uploaded to Cloudinary via Multer
+        // If yes, use the Cloudinary URL; if no, we don't update the picture
+        const profilePicUrl = req.file ? req.file.path : undefined;
+
+        // 4. Build the update object dynamically
+        const updateFields = {
+            "profileDetail.fullName": fullName,
+            "profileDetail.bio": bio,
+            "profileDetail.birthDate": birthDate,
+            "profileDetail.location": location,
+            "profileDetail.aboutMe": aboutMe,
+        };
+
+        // Only add profilePic to the update if a new file was actually uploaded
+        if (profilePicUrl) {
+            updateFields["profileDetail.profilePic"] = profilePicUrl;
+        }
+
+        // 5. Update the Database
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $set: updateFields },
+            { new: true, runValidators: true } 
+        ).select("-password");
+
+        if (!updatedUser) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            user: updatedUser
+        });
+
+    } catch (error) {
+        console.error("Update Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
 
 const logoutuser =async(req,res)=>{
     try {
@@ -227,4 +275,4 @@ const getuser = async(req,res)=>{
 }
 
 
-export  {createUser, loginuser, logoutuser, getuser,verifyUser,forgotPassword,resetPassword}; ;
+export  {createUser, loginuser, logoutuser, getuser,verifyUser,forgotPassword,resetPassword,updateProfile}; ;

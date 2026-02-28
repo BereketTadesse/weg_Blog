@@ -40,6 +40,14 @@ const userSchema= new mongoose.Schema({
         type: String,
         maxlength: 500
     },
+    profileDetail: {
+        fullName: { type: String, default: "" },
+        bio: { type: String, default: "" },
+        profilePic: { type: String, default: "default-avatar.png" }, // URL string
+        birthDate: { type: Date },
+        location: { type: String },
+        aboutMe: { type: String, default: "" }
+    },
     verificationToken: String,
     verificationTokenExpires: Date,
     resetPasswordToken: String,
