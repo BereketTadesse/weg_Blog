@@ -30,7 +30,7 @@ const createUser = async(req,res) =>{
             verificationTokenExpires: Date.now() + 3600000 // Token expires in 1 hour
         });
 
-        const verificationUrl = `http://localhost:3000/verify/${verificationToken}`;
+        const verificationUrl = `http://localhost:8080/verify/${verificationToken}`
         const emailOptions = {
     email: user.email,
     subject: "Verify your weg Blog Account 🛡️",
