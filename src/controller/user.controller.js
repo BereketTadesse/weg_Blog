@@ -146,7 +146,7 @@ const forgotPassword = async(req,res)=>{
         user.resetPasswordToken = resetToken;
         user.resetPasswordExpires = Date.now() + 3600000; // Token expires in 1 hour
         await user.save();
-        const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
+        const resetUrl = `http://localhost:8080/reset-password/${resetToken}`;
         const emailOptions = {
             email,
             subject: 'Password Reset',
