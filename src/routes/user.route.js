@@ -14,8 +14,8 @@ router.route("/login").post(loginuser);
 router.route("/logout").post(logoutuser);
 router.route("/me").get(protect,getuser);
 router.route("/verify/:verificationToken").get(verifyUser);
-router.route("/forgotPassword").post(protect,forgotPassword);
-router.route("/resetPassword/:token").post(protect,resetPassword);
+router.route("/forgotPassword").post(forgotPassword);
+router.route("/resetPassword/:token").post(resetPassword);
 router.route("/updateProfile").put(protect,upload.single('profilePic'),updateProfile);
 
 
