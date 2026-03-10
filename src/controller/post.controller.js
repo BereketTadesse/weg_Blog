@@ -157,4 +157,17 @@ const toggleLike = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
-export { createPost, updatePost, deletePost, getAllPosts, getPostsByAuthor, toggleLike };
+const incrementShare = async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const post = await Post.findByIdAndUpdate(
+            postId, 
+            { $inc: { shareCount: 1 } }, // Increases count by 1
+            { new: true }
+        );
+        res.status(200).json({ success: true, shares: post.shareCount });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+export { createPost, updatePost, deletePost, getAllPosts, getPostsByAuthor, toggleLike, incrementShare };
