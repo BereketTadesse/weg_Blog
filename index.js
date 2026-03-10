@@ -5,6 +5,8 @@ import connectDB from "./src/config/DB.js";
 import cors from "cors";
 
 import userRoutes from "./src/routes/user.route.js";
+import postRoutes from "./src/routes/post.route.js";
+import commentRoutes from "./src/routes/comment.route.js";
 dotenv.config({ path: "./src/.env" });
 
 const app = express();
@@ -21,6 +23,8 @@ app.use(
 );
 
 app.use("/api/users", userRoutes);
+app.use("/api/posts", postRoutes);
+app.use("/api/comments", commentRoutes);
 
 const PORT = process.env.PORT || 5000;
 
