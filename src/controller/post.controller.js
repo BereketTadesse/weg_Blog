@@ -126,7 +126,19 @@ const getPostsByAuthor = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
-
+const getPostBySlug = async (req, res) => {
+    try {
+        const { slug } = req.params;
+        const post = await Post.findOne({ slug }).populate("author", "username profileDetail.profilePic");
+        if (!post) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+        res.status(200).json({ post });
+    } catch (error) {
+        console.error("Error fetching post by slug:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};  
 const toggleLike = async (req, res) => {
     try {
         const { postId } = req.params;
@@ -170,4 +182,4 @@ const incrementShare = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-export { createPost, updatePost, deletePost, getAllPosts, getPostsByAuthor, toggleLike, incrementShare };
+export { createPost, updatePost, deletePost, getAllPosts, getPostsByAuthor, toggleLike, incrementShare ,getPostBySlug};
