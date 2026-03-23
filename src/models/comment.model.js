@@ -22,7 +22,17 @@ const commentSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "User"
         }
-    ]
+    ],
+        parentComment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Comment",
+      default: null,
+    },
+    replyCount: {
+      type: Number,
+      default: 0,
+    },
+
 }, { timestamps: true });
 
 // Optional: You can add a virtual to count the likes easily

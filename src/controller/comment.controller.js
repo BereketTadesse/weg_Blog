@@ -1,6 +1,5 @@
 import commentModel from "../models/comment.model.js";
 import Post from "../models/post.model.js";
-import User from "../models/user.model.js";
 
 const createComment = async (req, res) => {
     try {
@@ -30,7 +29,9 @@ const createComment = async (req, res) => {
 const getcomment = async (req, res) => {
     try {
         const { commentId } = req.params;
-        const comment = await commentModel.findById(commentId);
+        const comment = await commentModel
+            .findById(commentId)
+            .populate("author", "username");
         if (!comment) {
             return res.status(404).json({ message: "Comment not found" });
         }
@@ -48,12 +49,35 @@ const getCommentsByPost = async (req, res) => {
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
         }   
-        const comments = await commentModel.find({ post: postId }).populate("author", "username");
+        const comments = await commentModel
+            .find({ post: postId, parentComment: null })
+            .populate("author", "username")
+            .sort({ createdAt: -1 });
         res.status(200).json({ comments });
     } catch (error) {
         console.error("Error fetching comments:", error);
         res.status(500).json({ message: "Internal server error" });
     }       
+};
+const getRepliesByComment = async (req, res) => {
+    try {
+        const { commentId } = req.params;
+
+        const parentComment = await commentModel.findById(commentId);
+        if (!parentComment) {
+            return res.status(404).json({ message: "Comment not found" });
+        }
+
+        const replies = await commentModel
+            .find({ parentComment: commentId })
+            .populate("author", "username")
+            .sort({ createdAt: 1 });
+
+        res.status(200).json({ replies });
+    } catch (error) {
+        console.error("Error fetching replies:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
 };
 const editComment = async (req, res) => {
     try {
@@ -92,4 +116,38 @@ const deleteComment = async (req, res) => {
         console.error("Error deleting comment:", error);
         res.status(500).json({ message: "Internal server error" });
     }    };   
-export { createComment, getcomment, editComment, deleteComment ,getCommentsByPost};
+
+const replyToComment = async (req, res) => {
+    try {
+        const { commentId } = req.params;
+        const { content } = req.body;
+        const authorId = req.user.id;
+        const parentComment = await commentModel.findById(commentId);
+        if (!parentComment) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "Parent comment not found" });
+        }
+
+        if (!content) {
+            return res.status(400).json({ 
+                success: false,
+                message: "Content is required" });
+        }
+        const comment = new commentModel({
+            content,
+            author: authorId,
+            post: parentComment.post,
+            parentComment: commentId,
+        });  
+        await comment.save();
+        parentComment.replyCount += 1;
+        await parentComment.save();
+        res.status(201).json({ message: "Reply created successfully", comment });
+    } catch (error) {
+        console.error("Error replying to comment:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }   
+
+        };
+export { createComment, getcomment, editComment, deleteComment ,getCommentsByPost, getRepliesByComment, replyToComment};
