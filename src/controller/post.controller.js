@@ -4,10 +4,10 @@ import Comment from "../models/comment.model.js";
 
 const createPost = async (req, res) => {
 try {
-    const { title, content, category } = req.body;
+    const { title, content, category, status } = req.body;
     const authorId = req.user.id; // JWT stores the user id as `id`
 
-    if (!title || !content || !category) {
+    if (!title || !content || !category|| !status) {
         return res.status(400).json({ message: "All fields are required" });
     }
     let featuredImageURL = null;
@@ -18,6 +18,7 @@ try {
         title,
         content,
         category,
+        status,
         author: authorId,
         featuredImage: featuredImageURL || undefined
     });
@@ -88,8 +89,31 @@ const deletePost = async (req, res) => {
 
 const getAllPosts = async (req, res) => {
     try {
-        const posts = await Post.find().populate("author", "username profileDetail.profilePic").sort({ createdAt: -1 });
-        res.status(200).json({ posts });
+        const page = parseInt(req.query.page) || 1; // Default to page 1
+        const limit = parseInt(req.query.limit) || 10; // Default to 10 posts per page
+        const skip = (page - 1) * limit;
+        const posts = await Post.find({ status: "draft" })
+            .populate("author", "username profileDetail.profilePic")
+            .sort({ createdAt: -1 }) // Show newest posts first
+            .skip(skip)
+            .limit(limit);
+        const totalPosts = await Post.countDocuments({ status: "draft" });
+
+        const totalPages = Math.ceil(totalPosts / limit);
+        const hasNextPage = page < totalPages;
+
+        
+      res.status(200).json({
+      success: true,
+      data: posts,
+      pagination: {
+        totalResults: totalPosts,
+        totalPages,
+        currentPage: page,
+        hasNextPage,
+        nextPage: hasNextPage ? page + 1 : null
+      }
+    });
     } catch (error) {
         console.error("Error fetching posts:", error);
         res.status(500).json({ message: "Internal server error" });
