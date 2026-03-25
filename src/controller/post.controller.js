@@ -122,7 +122,7 @@ const getAllPosts = async (req, res) => {
 
 const getdraftPosts = async (req, res) => {
     try {
-        const authorId = req.user.id; // JWT stores the user id as `id`
+        const authorId = req.params.authorId || req.user.id; // Use route authorId when provided, otherwise fall back to the logged-in user
         const posts = await Post.find({ author: authorId, status: "draft" })
             .populate("author", "username profileDetail.profilePic")
             .sort({ createdAt: -1 }); // Show newest posts first
@@ -145,7 +145,7 @@ const getPostsByAuthor = async (req, res) => {
         const { authorId } = req.params;
 
         // 2. Search for all posts where the 'author' field matches that ID
-        const posts = await Post.find({ author: authorId })
+        const posts = await Post.find({ author: authorId ,status: "published"})
             .populate("author", "username profileDetail.profilePic")
             .sort({ createdAt: -1 }); // Show newest posts first
 

@@ -14,6 +14,7 @@ router.route("/updateBlog/:postId").put(protect, upload.single('featuredImage'),
 router.route("/deleteBlog/:postId").delete(protect, deletePost);
 router.route("/getAllBlogs").get(getAllPosts);
 router.route("/getdraftBlogs").get(protect, getdraftPosts);
+router.route("/getdraftBlogs/:authorId").get(protect, getdraftPosts);
 router.route("/user/:authorId").get(getPostsByAuthor);
 router.route("/toggleLike/:postId").post(protect, toggleLike);
 
