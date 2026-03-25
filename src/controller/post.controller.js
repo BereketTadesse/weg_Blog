@@ -35,7 +35,7 @@ try {
 const updatePost= async(req,res) =>{
     try {
         const { postId } = req.params;
-        const { title, content, category } = req.body || {};
+        const { title, content, category,status} = req.body || {};
         const authorId = req.user.id; // JWT stores the user id as `id`
 
         const post = await Post.findById(postId);
@@ -45,7 +45,7 @@ const updatePost= async(req,res) =>{
         if (post.author.toString() !== authorId) {
             return res.status(403).json({ message: "You are not authorized to update this post" });
         }
-        if (!title && !content && !category && !req.file) {
+        if (!title && !content && !category && !status && !req.file) {
             return res.status(400).json({ message: "Provide at least one field to update" });
         }
         
@@ -53,6 +53,7 @@ const updatePost= async(req,res) =>{
         if (title) post.title = title;
         if (content) post.content = content;
         if (category) post.category = category;
+        if (status) post.status = status;
         if (req.file) {
             post.featuredImage = req.file.path; // Update featured image if a new one is uploaded
         }
