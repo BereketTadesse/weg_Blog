@@ -1,7 +1,8 @@
 import express from 'express';
 import { createPost ,updatePost, deletePost,
 getAllPosts, getPostsByAuthor, toggleLike, incrementShare   ,
-getPostBySlug, searchPosts
+getPostBySlug, searchPosts,
+getdraftPosts
 } from '../controller/post.controller.js';
 import protect from '../middleware/auth.js';
 import upload from '../config/cloudinary.js';
@@ -12,6 +13,7 @@ router.route("/createBlog").post(protect,upload.single('featuredImage'), createP
 router.route("/updateBlog/:postId").put(protect, upload.single('featuredImage'), updatePost);
 router.route("/deleteBlog/:postId").delete(protect, deletePost);
 router.route("/getAllBlogs").get(getAllPosts);
+router.route("/getdraftBlogs").get(protect, getdraftPosts);
 router.route("/user/:authorId").get(getPostsByAuthor);
 router.route("/toggleLike/:postId").post(protect, toggleLike);
 

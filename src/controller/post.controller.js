@@ -92,12 +92,12 @@ const getAllPosts = async (req, res) => {
         const page = parseInt(req.query.page) || 1; // Default to page 1
         const limit = parseInt(req.query.limit) || 10; // Default to 10 posts per page
         const skip = (page - 1) * limit;
-        const posts = await Post.find({ status: "draft" })
+        const posts = await Post.find({ status: "published" })
             .populate("author", "username profileDetail.profilePic")
             .sort({ createdAt: -1 }) // Show newest posts first
             .skip(skip)
             .limit(limit);
-        const totalPosts = await Post.countDocuments({ status: "draft" });
+        const totalPosts = await Post.countDocuments({ status: "published" });
 
         const totalPages = Math.ceil(totalPosts / limit);
         const hasNextPage = page < totalPages;
@@ -119,6 +119,25 @@ const getAllPosts = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
+
+const getdraftPosts = async (req, res) => {
+    try {
+        const authorId = req.user.id; // JWT stores the user id as `id`
+        const posts = await Post.find({ author: authorId, status: "draft" })
+            .populate("author", "username profileDetail.profilePic")
+            .sort({ createdAt: -1 }); // Show newest posts first
+
+        res.status(200).json({ 
+            success: true, 
+            count: posts.length, 
+            posts 
+        });
+
+    } catch (error) {
+        console.error("Error fetching draft posts:", error);
+        res.status(500).json({ message: "Internal server error" });
+    };
+}
 const getPostsByAuthor = async (req, res) => {
     try {
         // 1. Get the Author ID from the URL params 
@@ -237,4 +256,6 @@ const searchPosts = async (req, res) => {
 };
 export { createPost, updatePost, deletePost, getAllPosts, getPostsByAuthor, toggleLike, incrementShare ,
     getPostBySlug,
-    searchPosts};
+    searchPosts,
+    getdraftPosts
+};
