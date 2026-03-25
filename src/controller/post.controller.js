@@ -183,22 +183,33 @@ const incrementShare = async (req, res) => {
     }
 };
 const searchPosts = async (req, res) => {
-    try {
-        const {query} = req.query;
-        if(!query){
-            return res.status(400).json({message : "Query parameter is required"});
-        }
-        const posts = await Post.find(
-            { $text: { $search: query } },
-            { score: { $meta: "textScore" } }
-        )
-        .sort({ score: { $meta: "textScore" } })
-        .populate("author", "username profileDetail.profilePic");
-        res.status(200).json({ posts });
-    } catch (error) {
-        console.error("Error searching posts:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
+  try {
+    const { q } = req.query;
+
+    if (!q) return res.status(400).json({ message: "Search query is required" });
+
+    // 'i' makes it case-insensitive
+    // This will match "cod" inside "coding", "Coder", "encoding", etc.
+    const searchRegex = new RegExp(q, 'i');
+
+    const posts = await Post.find({
+      status: 'published',
+      $or: [
+        { title: { $regex: searchRegex } },
+        { content: { $regex: searchRegex } },
+        { category: { $regex: searchRegex } }
+      ]
+    })
+    .populate('author', 'username profileImage')
+    .sort({ createdAt: -1 }); // Sort by newest first
+
+    res.status(200).json({
+      count: posts.length,
+      results: posts
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Search failed", error: error.message });
+  }
 };
 export { createPost, updatePost, deletePost, getAllPosts, getPostsByAuthor, toggleLike, incrementShare ,
     getPostBySlug,
