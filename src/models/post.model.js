@@ -69,6 +69,11 @@ const postSchema = new mongoose.Schema({
  * This runs automatically before the post is validated/saved.
  * It turns "My First Blog!" into "my-first-blog"
  */
+postSchema.index({
+   title : "text",
+    content : "text",
+    category : "text"
+});
 postSchema.pre('validate', function(next) {
     if (this.title) {
         this.slug = this.title
