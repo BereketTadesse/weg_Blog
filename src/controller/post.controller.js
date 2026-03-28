@@ -102,7 +102,7 @@ const getAllPosts = async (req, res) => {
             .sort({ createdAt: -1 }) // Show newest posts first
             .limit(limit);
 
-        const lastpost = post.length > 0 ? posts[posts.length - 1] : null;
+        const lastpost = posts.length > 0 ? posts[posts.length - 1] : null;
         const totalPosts = await Post.countDocuments(query); // Get the most recent post
         
       res.status(200).json({
