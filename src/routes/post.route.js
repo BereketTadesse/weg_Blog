@@ -1,8 +1,8 @@
 import express from 'express';
 import { createPost ,updatePost, deletePost,
-getAllPosts, getPostsByAuthor, toggleLike, incrementShare   ,
+getAllPosts, getPostsByAuthor, toggleLike, toggleDislike, incrementShare   ,
 getPostBySlug, searchPosts,
-getdraftPosts
+getdraftPosts,checkNewPosts
 } from '../controller/post.controller.js';
 import protect from '../middleware/auth.js';
 import upload from '../config/cloudinary.js';
@@ -17,9 +17,10 @@ router.route("/getdraftBlogs").get(protect, getdraftPosts);
 router.route("/getdraftBlogs/:authorId").get(protect, getdraftPosts);
 router.route("/user/:authorId").get(getPostsByAuthor);
 router.route("/toggleLike/:postId").post(protect, toggleLike);
-
+router.route("/toggleDislike/:postId").post(protect, toggleDislike);
 router.route("/incrementShare/:postId").post(protect, incrementShare);
 router.route("/getPostBySlug/:slug").get(getPostBySlug);
 router.route("/search").get(searchPosts);
+router.route("/checkNewPosts").get(protect, checkNewPosts); 
 
 export default router;

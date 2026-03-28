@@ -53,7 +53,9 @@ const getCommentsByPost = async (req, res) => {
             .find({ post: postId, parentComment: null })
             .populate("author", "username")
             .sort({ createdAt: -1 });
-        res.status(200).json({ comments });
+
+        const count = await commentModel.countDocuments({ post: postId, parentComment: null });
+        res.status(200).json({ comments, count });
     } catch (error) {
         console.error("Error fetching comments:", error);
         res.status(500).json({ message: "Internal server error" });
