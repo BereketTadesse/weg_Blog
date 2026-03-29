@@ -322,7 +322,11 @@ const getUserProfile = async (req, res) => {
     const currentUserId = req.user.id; // The ID of the logged-in user (from JWT middleware)
 
     // 1. Find the target user
-    const targetUser = await User.findById(id).select('-password');
+    const targetUser = await User.findById(id)
+      .select("username profileDetail followers following createdAt")
+      .populate("followers", "username profileDetail.fullName profileDetail.profilePic")
+      .populate("following", "username profileDetail.fullName profileDetail.profilePic");
+
     if (!targetUser) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -331,12 +335,32 @@ const getUserProfile = async (req, res) => {
     const postsCount = await Post.countDocuments({ author: id });
 
     // 3. Check if the current user is following the target user
-    // Assumes your User model has a 'followers' array field
-    const isFollowing = targetUser.followers.includes(currentUserId);
+    const isFollowing = targetUser.followers.some(
+      (follower) => follower._id.toString() === currentUserId
+    );
+
+    const followers = targetUser.followers.map((follower) => ({
+      _id: follower._id,
+      username: follower.username,
+      profileDetail: follower.profileDetail,
+    }));
+
+    const following = targetUser.following.map((followedUser) => ({
+      _id: followedUser._id,
+      username: followedUser.username,
+      profileDetail: followedUser.profileDetail,
+    }));
 
     // 4. Send back the combined data
     res.json({
-      user: targetUser,
+      user: {
+        _id: targetUser._id,
+        username: targetUser.username,
+        profileDetail: targetUser.profileDetail,
+        followers,
+        following,
+        createdAt: targetUser.createdAt,
+      },
       stats: {
         followersCount: targetUser.followers.length,
         followingCount: targetUser.following.length,
