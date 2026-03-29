@@ -1,6 +1,7 @@
 import Post from "../models/post.model.js";
 import Comment from "../models/comment.model.js";
 import mongoose from "mongoose";
+import { getUploadedFileUrl } from "../config/cloudinary.js";
 
 
 const createPost = async (req, res) => {
@@ -11,10 +12,7 @@ try {
     if (!title || !content || !category|| !status) {
         return res.status(400).json({ message: "All fields are required" });
     }
-    let featuredImageURL = null;
-    if (req.file) {
-        featuredImageURL = req.file.path; // Assuming you're using Cloudinary
-    }
+    const featuredImageURL = getUploadedFileUrl(req.file);
     const post = new Post({
         title,
         content,
@@ -55,8 +53,9 @@ const updatePost= async(req,res) =>{
         if (content) post.content = content;
         if (category) post.category = category;
         if (status) post.status = status;
-        if (req.file) {
-            post.featuredImage = req.file.path; // Update featured image if a new one is uploaded
+        const featuredImageURL = getUploadedFileUrl(req.file);
+        if (featuredImageURL) {
+            post.featuredImage = featuredImageURL;
         }
         
         await post.save();

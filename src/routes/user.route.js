@@ -1,5 +1,5 @@
 import {createUser, loginuser,logoutuser,getuser,verifyUser,forgotPassword,resetPassword,
-    updateProfile,followUser,unfollowUser,getFollowers,getFollowing
+    updateProfile,followUser,unfollowUser,getFollowers,getFollowing,getUserProfile
 } from "../controller/user.controller.js";
 
 import express from "express";
@@ -21,6 +21,8 @@ router.route("/follow/:targetUserId").post(protect, followUser);
 router.route("/unfollow/:targetUserId").post(protect, unfollowUser);
 router.route("/followers").get(protect, getFollowers);
 router.route("/following").get(protect, getFollowing);
+router.route("/profile/:id").get(protect, getUserProfile);
+
 
 
 

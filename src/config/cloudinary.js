@@ -22,4 +22,29 @@ const storage = new CloudinaryStorage({
 // 3. Create the 'upload' middleware
 const upload = multer({ storage: storage });
 
+const getUploadedFileUrl = (file) => {
+    if (!file) return undefined;
+
+    // Build a stable public delivery URL from the Cloudinary public_id.
+    // This avoids storing temporary/signed URLs that may expire.
+    if (file.filename) {
+        return cloudinary.url(file.filename, {
+            secure: true,
+            sign_url: false,
+            resource_type: 'image',
+            type: 'upload'
+        });
+    }
+
+    const rawUrl = file.path || file.secure_url || file.url;
+    if (!rawUrl) return undefined;
+
+    if (rawUrl.startsWith('http://')) {
+        return rawUrl.replace('http://', 'https://');
+    }
+
+    return rawUrl;
+};
+
+export { cloudinary, getUploadedFileUrl };
 export default upload;

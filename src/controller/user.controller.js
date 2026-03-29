@@ -1,7 +1,9 @@
 import User from "../models/user.model.js";
+import Post from "../models/post.model.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import sendEmail from "../utils/sendEmails.js";
+import { getUploadedFileUrl } from "../config/cloudinary.js";
 
 const createUser = async (req, res) => {
   try {
@@ -239,7 +241,7 @@ const updateProfile = async (req, res) => {
 
     // 3. Check if a file was uploaded to Cloudinary via Multer
     // If yes, use the Cloudinary URL; if no, we don't update the picture
-    const profilePicUrl = req.file ? req.file.path : undefined;
+    const profilePicUrl = getUploadedFileUrl(req.file);
 
     // 4. Build the update object dynamically
     const updateFields = {
@@ -312,6 +314,38 @@ const getuser = async (req, res) => {
       message: "Error getting user",
       error,
     });
+  }
+};
+const getUserProfile = async (req, res) => {
+  try {
+    const { id } = req.params; // The ID of the profile being viewed
+    const currentUserId = req.user.id; // The ID of the logged-in user (from JWT middleware)
+
+    // 1. Find the target user
+    const targetUser = await User.findById(id).select('-password');
+    if (!targetUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // 2. Get the post count for this user
+    const postsCount = await Post.countDocuments({ author: id });
+
+    // 3. Check if the current user is following the target user
+    // Assumes your User model has a 'followers' array field
+    const isFollowing = targetUser.followers.includes(currentUserId);
+
+    // 4. Send back the combined data
+    res.json({
+      user: targetUser,
+      stats: {
+        followersCount: targetUser.followers.length,
+        followingCount: targetUser.following.length,
+        postsCount: postsCount
+      },
+      isFollowing: isFollowing
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -460,5 +494,6 @@ export {
   followUser,
   unfollowUser,
   getFollowers,
-  getFollowing
+  getFollowing,
+  getUserProfile
 };
