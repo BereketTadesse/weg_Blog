@@ -27,6 +27,18 @@ const userSchema= new mongoose.Schema({
         type: String,
         default: "https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-High-Quality-Image.png"
     },
+    following:[
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        }
+    ],
+    followers:[
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        }
+    ],
     role:{
         type: String,
         enum: ["user", "admin"],
@@ -56,9 +68,18 @@ const userSchema= new mongoose.Schema({
 
 },
 {
-    timestamps: true
-});
+    timestamps: true,
+    // These two lines are CRUCIAL for showing comments later
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 
+});
+userSchema.virtual("followersCount").get(function(){
+    return Array.isArray(this.followers) ? this.followers.length : 0;
+});
+userSchema.virtual("followingCount").get(function(){
+    return Array.isArray(this.following) ? this.following.length : 0;
+}); 
 userSchema.pre('save' ,async function(){
     try {
         

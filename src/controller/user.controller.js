@@ -315,6 +315,139 @@ const getuser = async (req, res) => {
   }
 };
 
+const followUser = async (req, res) => {
+  try {
+    const userId = req.user.id; 
+    const { targetUserId } = req.params;
+
+    if (userId === targetUserId) {
+      return res.status(400).json({ message: "You cannot follow yourself" });
+    }
+    
+    const user = await User.findById(userId);
+    const targetUser = await User.findById(targetUserId);
+
+    if (!targetUser) {
+      return res.status(404).json({ message: "Target user not found" });
+    }
+
+    if (user.following.includes(targetUserId)) {
+      return res.status(400).json({ message: "You are already following this user" });
+    }
+    
+    user.following.push(targetUserId);
+    targetUser.followers.push(userId);
+    await user.save();
+    await targetUser.save();
+    return res.status(200).json({ message: "User followed successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Error following user", error , stackTrace: error.stack});  }
+};
+
+const unfollowUser = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { targetUserId } = req.params;
+
+    if (userId === targetUserId) {
+      return res.status(400).json({ message: "You cannot unfollow yourself" });
+    }
+    
+    const user = await User.findById(userId);
+    const targetUser = await User.findById(targetUserId);
+    
+    if (!targetUser) {
+      return res.status(404).json({ message: "Target user not found" });
+    }
+    if (!user.following.includes(targetUserId)) {
+      return res.status(400).json({ message: "You are not following this user" });
+    }
+    
+    user.following.pull(targetUserId);
+    targetUser.followers.pull(userId);
+    await user.save();
+    await targetUser.save();
+    return res.status(200).json({ message: "User unfollowed successfully" });
+    
+  } catch (error) {
+    return res.status(500).json({ message: "Error unfollowing user", error });
+  }
+}
+
+// Add the missing closing brace above
+
+const getFollowers = async (req, res) => {
+  try {
+    const userId = req.params.id || req.user.id;
+    const user = await User.findById(userId)
+      .populate("followers", "username profileDetail.profilePic followers following")
+      .select("followers");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const followers = user.followers.map((follower) => {
+      const followerObject = follower.toObject();
+      return {
+        _id: followerObject._id,
+        username: followerObject.username,
+        profileDetail: followerObject.profileDetail,
+        followersCount: followerObject.followersCount,
+        followingCount: followerObject.followingCount,
+        id: followerObject.id,
+      };
+    });
+
+    res.status(200).json({ 
+      success: true,
+      totalFollowers: user.followersCount,
+      followers,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Error getting followers", error , stackTrace: error.stack});
+  }
+};
+const getFollowing = async (req, res) => {
+  try {
+    const userId = req.params.id || req.user.id;
+    const user = await User.findById(userId)
+      .populate("following", "username profileDetail.profilePic followers following")
+      .select("following");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const following = user.following.map((followedUser) => {
+      const followedUserObject = followedUser.toObject();
+      return {
+        _id: followedUserObject._id,
+        username: followedUserObject.username,
+        profileDetail: followedUserObject.profileDetail,
+        followersCount: followedUserObject.followersCount,
+        followingCount: followedUserObject.followingCount,
+        id: followedUserObject.id,
+      };
+    });
+
+    res.status(200).json({ 
+      success: true,
+      totalFollowing: user.followingCount,
+      following,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Error getting following",
+       error,
+       stackTrace: error.stack});
+  }
+};
 export {
   createUser,
   loginuser,
@@ -324,4 +457,8 @@ export {
   forgotPassword,
   resetPassword,
   updateProfile,
+  followUser,
+  unfollowUser,
+  getFollowers,
+  getFollowing
 };

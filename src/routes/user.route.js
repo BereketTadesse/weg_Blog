@@ -1,5 +1,5 @@
 import {createUser, loginuser,logoutuser,getuser,verifyUser,forgotPassword,resetPassword,
-    updateProfile
+    updateProfile,followUser,unfollowUser,getFollowers,getFollowing
 } from "../controller/user.controller.js";
 
 import express from "express";
@@ -17,6 +17,10 @@ router.route("/verify/:verificationToken").get(verifyUser);
 router.route("/forgotPassword").post(forgotPassword);
 router.route("/resetPassword/:token").post(resetPassword);
 router.route("/updateProfile").put(protect,upload.single('profilePic'),updateProfile);
+router.route("/follow/:targetUserId").post(protect, followUser);
+router.route("/unfollow/:targetUserId").post(protect, unfollowUser);
+router.route("/followers").get(protect, getFollowers);
+router.route("/following").get(protect, getFollowing);
 
 
 
